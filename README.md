@@ -189,11 +189,16 @@ Version 2.0
 Examples
 --------
 1) Most basic example. Fast!
+
+    ```php
     $dicom = Nanodicom::factory($filename);
     // Only a small subset of the dictionary entries were loaded
     echo $dicom->parse()->profiler_diff('parse')."\n"; 
+    ```
 
 2) Load only given tags. It will stop once all given tags are found. Fastest!
+
+    ```php
     $dicom = Nanodicom::factory($filename, 'simple');
     $dicom->parse(array(array(0x0010, 0x0010)));
     // Only a small subset of the dictionary entries were loaded
@@ -201,16 +206,22 @@ Examples
     echo 'Patient name if exists: '.$dicom->value(0x0010, 0x0010)."\n"; // Patient Name if exists
     // This will return nothing because dictionaries were not loaded
     echo 'Patient name should be empty here: '.$dicom->PatientName."\n";
+    ```
 
 3) Load only given tags by name. Stops once all tags are found. Not so fast.
+
+    ```php
     $dicom = Nanodicom::factory($filename, 'simple');
     $dicom->parse(array('PatientName'));
     echo $dicom->profiler_diff('parse')."\n";
     echo 'Patient name if exists: '.$dicom->value(0x0010, 0x0010)."\n"; // Patient Name if exists
     // Or
     echo 'Patient name if exists: '.$dicom->PatientName."\n"; // Patient Name if exists
+    ```
 
 4) Load only given tags. Dump it and print certain tags. Load 'dumper' directly.
+
+    ```php
     $dicom = Nanodicom::factory($filename, 'dumper');
     $dicom->parse(array(array(0x0010, 0x0010)));
     echo $dicom->dump();
@@ -219,67 +230,103 @@ Examples
     echo 'Something should show if element exists.'.$dicom->value(0x0010, 0x0010)."\n";
     // This will return the value because 'dumper' was used and loaded the dictionaries
     echo 'This should be empty, no dictionaries loaded.'.$dicom->PatientName."\n";
+    ```
 
 5) Load simple and print certain value
+
+    ```php
     $dicom = Nanodicom::factory($filename);
     $dicom->parse();
     echo $dicom->profiler_diff('parse')."\n";
     echo 'Patient Name: '.$dicom->value(0x0010, 0x0010)."\n"; // Patient Name if exists
+    ```
     
 6) Load simple and extend it to 'dumper'
+
+    ```php
     $dicom = Nanodicom::factory($filename);
     echo $dicom->parse()->extend('dumper')->dump();
     echo $dicom->profiler_diff('parse').' '.$dicom->profiler_diff('dump')."\n";
+    ```
 
 7) Load simple and extend it to 'dumper'. No need to parse, dump() does it. Parsing is done only once.
+
+    ```php
     $dicom = Nanodicom::factory($filename);
     echo $dicom->extend('dumper')->dump();
     echo $dicom->profiler_diff('parse').' '.$dicom->profiler_diff('dump')."\n";
+    ```
 
 8) Load 'dumper' directly. Dump output is in html format.
+
+    ```php
     $dicom = Nanodicom::factory($filename, 'dumper');
     echo $dicom->parse()->dump('html');
     echo $dicom->profiler_diff('parse').' '.$dicom->profiler_diff('dump')."\n";
+    ```
     
 9) Load 'anonymizer' directly.
+
+    ```php
     $dicom = Nanodicom::factory($filename, 'anonymizer');
     file_put_contents($filename.'.ex9', $dicom->anonymize());
+    ```
 
 10) Extend 'anonymizer'. No need to call parse(), anonymize() will do it.
+
+    ```php
     $dicom = Nanodicom::factory($filename);
     file_put_contents($filename.'.ex10', $dicom->extend('anonymizer')->anonymize());
+    ```
 
 11) Double extension (and probably you can go on and on)
+
+    ```php
     $dicom = Nanodicom::factory($filename);
     echo $dicom->extend('dumper')->dump();
     file_put_contents($filename.'.ex11', $dicom->extend('anonymizer')->anonymize());
+    ```
 
 12) Save file as Explicit VR Little Endian. Read Additional notes below!
+
+    ```php
     $dicom = Nanodicom::factory($filename);
     echo $dicom->parse()->profiler_diff('parse')."\n";
     // Setting values takes care of even length
     // If set to '1.2.840.10008.1.2.1.99' it will use deflate
     $dicom->value(0x0002, 0x0010, $dicom::EXPLICIT_VR_LITTLE_ENDIAN);
     echo $dicom->write_file($filename.'.ex12')->profiler_diff('write')."\n";
+    ```
 
 13) Pass file contents instead of filename.
+
+    ```php
     $contents = file_get_contents(FILE);
     $dicom = Nanodicom::factory($contents, 'dumper', 'blob');
     echo $dicom->dump();
+    ```
     
 14) Check if file has preamble and DICM.
+
+    ```php
     $dicom = Nanodicom::factory($filename);
     echo 'Is DICOM? '.$dicom->is_dicom()."\n";
+    ```
 
 15) Anonymize and save file as Explicit VR Little Endian.  Read Additional notes below!
+
+    ```php
     $dicom = Nanodicom::factory($filename);
     echo $dicom->parse()->profiler_diff('parse')."\n";
     // Setting values takes care of even length
     // If set to '1.2.840.10008.1.2.1.99' it will use deflate
     $dicom->value(0x0002, 0x0010, $dicom::EXPLICIT_VR_LITTLE_ENDIAN);
     file_put_contents($filename.'.ex15', $dicom->extend('anonymizer')->anonymize());
+    ```
 
 16) Provide your own dumper formatting
+
+    ```php
     $formatting = array(
         'dataset_begin'    => '',
         'dataset_end'    => "\n",
@@ -300,16 +347,22 @@ Examples
     );
     $dicom = Nanodicom::factory($filename, 'dumper');
     echo $dicom->dump($formatting);
+    ```
 
 17) Anonymize on the fly and dump the contents, don't save to a file
+
+    ```php
     $dicom  = Nanodicom::factory($filename, 'anonymizer');
     $dicom1 = Nanodicom::factory($dicom->anonymize(), 'dumper', 'blob');
     echo $dicom1->dump();
     unset($dicom);
     unset($dicom1);
+    ```
     
 18) Pass your own list of elements to anonymizer
     // Own tag elements for anonymizing
+
+    ```php
     $tags = array(
         array(0x0008, 0x0020, '{date|Ymd}'),            // Study Date
         array(0x0008, 0x0021, '{date|Ymd}'),            // Series Date
@@ -323,10 +376,12 @@ Examples
     echo $dicom1->dump();
     unset($dicom);
     unset($dicom1);
+    ```
 
 19) Pass your own list of mappings to anonymizer. Patient Name should be replace to
     'Mapped' if 'Anonymized' is found. Case sensitive
 
+    ```php
     // Own tag elements for anonymizing
     $tags = array(
         array(0x0008, 0x0020, '{date|Ymd}'),            // Study Date
@@ -345,9 +400,12 @@ Examples
     file_put_contents($filename.'.ex19', $dicom1->write());
     unset($dicom);
     unset($dicom1);
+    ```
 
     
 20) Gets the images from the dicom object if they exist. This example is for gd
+
+    ```php
     $dicom  = Nanodicom::factory($filename, 'pixeler');
     if ( ! file_exists($filename.'.0.jpg'))
     {
@@ -377,13 +435,19 @@ Examples
         echo "Image already exists\n";
     }
     unset($dicom);
+    ```
 
 21) Prints summary report
+
+    ```php
     $dicom  = Nanodicom::factory($filename);
     echo $dicom->summary();
     unset($dicom);
+    ```
 
 22) Proper way of handling exceptions
+
+    ```php
     try
     {
         // All other examples should be placed here
@@ -394,7 +458,7 @@ Examples
     {
         echo 'File failed. '.$e->getMessage()."\n";
     }
-	
+	```
 Tests
 ---------------
 Basic tests have been added. They are run using phpunit (you need to have phpunit installed)
